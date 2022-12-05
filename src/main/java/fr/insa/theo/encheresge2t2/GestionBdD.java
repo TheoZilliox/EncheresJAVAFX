@@ -6,11 +6,10 @@ package fr.insa.theo.encheresge2t2;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import java.util.Scanner;   //préciser qu'on a importé
 /**
  *
  * @author tzilliox01
@@ -130,14 +129,7 @@ public class GestionBdD {
                             add constraint fk_encheres2_de
                             foreign key (de) references utilisateur2(id)
                              """);
-                          
-                          
-                    
-            
-            
-            
-            
-            
+           
 //            st.executeUpdate(
 //                    """
 //                    create table aime (
@@ -270,4 +262,84 @@ public class GestionBdD {
         }
     }
 
+    public static void menu(Connection con) {
+        int rep = -1;
+        while (rep != 0) {
+            System.out.println("Menu BdD Aime");
+            System.out.println("=============");
+            System.out.println("1) créer/recréer la BdD initiale");
+            System.out.println("2) liste des utilisateurs");
+            System.out.println("3) liste des liens 'Aime'");
+            System.out.println("4) ajouter un utilisateur");
+            System.out.println("5) ajouter un lien 'Aime'");
+            System.out.println("6) ajouter n utilisateurs aléatoires");
+            System.out.println("0) quitter");
+            rep = ConsoleFdB.entreeEntier("Votre choix : ");
+            try {
+                if (rep == 1) {
+                    recreeTout(con);
+                } else if (rep == 2) {
+                    afficheTousLesUtilisateur(con);
+                } else if (rep == 3) {
+                    afficheAmours(con);
+                } else if (rep == 4) {
+                    demandeNouvelUtilisateur(con);
+                } else if (rep == 5) {
+                    demandeNouvelAime(con);
+                } else if (rep == 6) {
+                    System.out.println("création d'utilisateurs 'aléatoires'");
+                    int combien = ConsoleFdB.entreeEntier("combien d'utilisateur : ");
+                    for (int i = 0; i < combien; i++) {
+                        boolean exist = true;
+                        while (exist) {
+                            String nom = "U" + ((int) (Math.random() * 10000));
+                            try{
+                                createUtilisateur(con, nom, "P" + ((int) (Math.random() * 10000)));
+                                exist = false;
+                            }
+                            catch (NomExisteDejaException ex) {
+                            }
+                        }
+
+                    }
+                }
+            } catch (SQLException ex) {
+                throw new Error(ex);
+            }
+        }
+    }
+    
+    public static void creeUtilisateur(Connection con,String monNom,String lePrenom) throws SQLException {
+        try (PreparedStatement pst = con.prepareStatement("insert into utilisateur (nom, prenom, email, codepostal, pass) "
+                + " values (?,?,?,?,?) ")) {
+            pst.setString(1, monNom);
+            pst.setString(2, monPrenom);
+            pst.setString(3, monCodePostal);
+            pst.setString(4, monEmail);
+            pst.setString(5, monMDP);
+            pst.executeUpdate();
+        }
+    }
+    
+    public static void demandeNouvelUtilisateur(){
+        
+        Scanner console = new Scanner(System.in); 
+        String monPrenom ;
+        String monNom ;
+        String monCodePostal ;
+        String monEmail ;
+        String MonMDP ;
+        System.out.println("Rentrez votre prénom : ");
+        monPrenom = console.nextLine();
+        System.out.println("Rentrez votre nom de famille : ");
+        monNom = console.nextLine();
+        System.out.println("Rentrez votre prénom : ");
+        monCodePostal = console.nextLine();
+        System.out.println("Rentrez votre prénom : ");
+        monEmail = console.nextLine();
+        System.out.println("Rentrez votre prénom : ");
+        MonMDP = console.nextLine();
+    }
+    
 }
+
