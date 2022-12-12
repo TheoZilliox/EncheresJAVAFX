@@ -18,20 +18,20 @@ public class GestionBdD {
 
     public static Connection connectGeneralPostGres(String host,
             int port, String database,
-            String user, String pass)
+            String user, String passe)
             throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
         Connection con = DriverManager.getConnection(
                 "jdbc:postgresql://" + host + ":" + port
                 + "/" + database,
-                user, pass);
+                user, passe);
         con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         return con;
     }
 
     public static Connection defautConnect()
             throws ClassNotFoundException, SQLException {
-        return connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "passe");
+        return connectGeneralPostGres("localhost", 5432, "postgres", "postgres", "passe");
     }
 
     public static void creeSchema(Connection con)
@@ -247,14 +247,20 @@ public class GestionBdD {
         }
     }
 
+    /*
     public static void ChoixUtilisateur() throws SQLException {
     }
-
+    */
+    
+    
     public static void ChoixCategorie() throws SQLException {
     }
     
     public static void main(String[] args) {
         try(Connection con = defautConnect()) {
+            System.out.println("debug");
+            demandeNouvelUtilisateur();
+            // creerUtilisateur(con);
             deleteSchema(con);
             creeSchema(con);
         } catch (Exception ex) {
@@ -262,7 +268,7 @@ public class GestionBdD {
         }
     }
 
-    public static void menu(Connection con) {
+ /*   public static void menu(Connection con) {
         int rep = -1;
         while (rep != 0) {
             System.out.println("Menu BdD Aime");
@@ -277,15 +283,15 @@ public class GestionBdD {
             rep = ConsoleFdB.entreeEntier("Votre choix : ");
             try {
                 if (rep == 1) {
-                    recreeTout(con);
+                    // TODO recreeTout(con);
                 } else if (rep == 2) {
-                    afficheTousLesUtilisateur(con);
+                    // TODO afficheTousLesUtilisateur(con);
                 } else if (rep == 3) {
-                    afficheAmours(con);
+                    // TODO afficheAmours(con);
                 } else if (rep == 4) {
-                    demandeNouvelUtilisateur(con);
+                    // TODO demandeNouvelUtilisateur(con);
                 } else if (rep == 5) {
-                    demandeNouvelAime(con);
+                    // TODO demandeNouvelAime(con);
                 } else if (rep == 6) {
                     System.out.println("création d'utilisateurs 'aléatoires'");
                     int combien = ConsoleFdB.entreeEntier("combien d'utilisateur : ");
@@ -294,11 +300,12 @@ public class GestionBdD {
                         while (exist) {
                             String nom = "U" + ((int) (Math.random() * 10000));
                             try{
-                                createUtilisateur(con, nom, "P" + ((int) (Math.random() * 10000)));
+                                //TODO createUtilisateur(con, nom, "P" + ((int) (Math.random() * 10000)));
                                 exist = false;
                             }
-                            catch (NomExisteDejaException ex) {
+                           catch (NomExisteDejaException ex) {
                             }
+
                         }
 
                     }
@@ -308,8 +315,10 @@ public class GestionBdD {
             }
         }
     }
+    */
     
-    public static void creeUtilisateur(Connection con,String monNom,String lePrenom) throws SQLException {
+    
+    public static void creerUtilisateur(Connection con,String monNom,String monPrenom,String monCodePostal, String monEmail, String monMDP) throws SQLException {
         try (PreparedStatement pst = con.prepareStatement("insert into utilisateur (nom, prenom, email, codepostal, pass) "
                 + " values (?,?,?,?,?) ")) {
             pst.setString(1, monNom);
@@ -321,24 +330,26 @@ public class GestionBdD {
         }
     }
     
+    
     public static void demandeNouvelUtilisateur(){
         
         Scanner console = new Scanner(System.in); 
-        String monPrenom ;
+        /*String monPrenom ;
         String monNom ;
         String monCodePostal ;
         String monEmail ;
         String MonMDP ;
+        */
         System.out.println("Rentrez votre prénom : ");
-        monPrenom = console.nextLine();
+        String monPrenom = console.nextLine();
         System.out.println("Rentrez votre nom de famille : ");
-        monNom = console.nextLine();
-        System.out.println("Rentrez votre prénom : ");
-        monCodePostal = console.nextLine();
-        System.out.println("Rentrez votre prénom : ");
-        monEmail = console.nextLine();
-        System.out.println("Rentrez votre prénom : ");
-        MonMDP = console.nextLine();
+        String monNom = console.nextLine();
+        System.out.println("Rentrez votre code postal : ");
+        String monCodePostal = console.nextLine();
+        System.out.println("Rentrez votre email : ");
+        String monEmail = console.nextLine();
+        System.out.println("Rentrez votre mdp : ");
+        String MonMDP = console.nextLine();
     }
     
 }
