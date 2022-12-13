@@ -10,10 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;   //préciser qu'on a importé
-/**
- *
- * @author tzilliox01
- */
+
+// @author tzilliox01
+
 public class GestionBdD {
 
     public static Connection connectGeneralPostGres(String host,
@@ -34,10 +33,22 @@ public class GestionBdD {
         return connectGeneralPostGres("localhost", 5432, "postgres", "postgres", "passe");
     }
 
+        public static void main(String[] args) {
+        try(Connection con = defautConnect()) {
+            System.out.println("debug");
+            //demandeNouvelUtilisateur(con);
+            //demandeNouvelObjet(con);
+            deleteSchema(con);
+            //creeSchema(con);
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
+    }
+        
     public static void creeSchema(Connection con)
             throws SQLException {
         // je veux que le schema soit entierement créé ou pas du tout
-        // je vais donc gérer explicitement une transaction
+        // je vais donc gérer explicitement une transactionSS
         con.setAutoCommit(false);
         try ( Statement st = con.createStatement()) {
             // creation des tables
@@ -48,14 +59,13 @@ public class GestionBdD {
             
                     st.executeUpdate(
                             """
-                        
-
+                     
                             create table objet2 (
                                 id integer not null primary key
                                 generated always as identity,
                                 titre varchar(200) not null,
                                 description varchar(100) not null,
-                                début timestamp not null,
+                                debut timestamp not null,
                                 prixbase integer not null, 
                                 proposepar integer not null,
                                 cat integer not null,
@@ -69,7 +79,7 @@ public class GestionBdD {
                             create table utilisateur2 (
                             id integer not null primary key
                             generated always as identity,
-                            nomtest varchar(50) not null,
+                            nom varchar(50) not null,
                             prenom varchar(30) not null,
                             mail varchar(100) not null unique,
                             pass varchar(30) not null,
@@ -130,30 +140,13 @@ public class GestionBdD {
                             foreign key (de) references utilisateur2(id)
                              """);
            
-//            st.executeUpdate(
-//                    """
-//                    create table aime (
-//                        u1 integer not null,
-//                        u2 integer not null
-//                    )
-//                    """);
+
 //            // je defini les liens entre les clés externes et les clés primaires
 //            // correspondantes
-//            st.executeUpdate(
-//                    """
-//                    alter table aime
-//                        add constraint fk_aime_u1
-//                        foreign key (u1) references utilisateur(id)
-//                    """);
-//            st.executeUpdate(
-//                    """
-//                    alter table aime
-//                        add constraint fk_aime_u2
-//                        foreign key (u2) references utilisateur(id)
-//                    """);
-            // si j'arrive jusqu'ici, c'est que tout s'est bien passé
-            // je confirme (commit) la transaction
-            con.commit();
+
+           
+            
+            con.commit();      // je confirme (commit) la transaction
             // je retourne dans le mode par défaut de gestion des transaction :
             // chaque ordre au SGBD sera considéré comme une transaction indépendante
             con.setAutoCommit(true);
@@ -179,36 +172,43 @@ public class GestionBdD {
             // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
             // puis les tables
             // suppression des liens
-//            try {
-//                st.executeUpdate(
-//                        """
-//                    alter table aime
-//                        drop constraint fk_aime_u1
-//                             """);
-//                System.out.println("constraint fk_aime_u1 dropped");
-//            } catch (SQLException ex) {
-//                // nothing to do : maybe the constraint was not created
-//            }
-//            try {
-//                st.executeUpdate(
-//                        """
-//                    alter table aime
-//                        drop constraint fk_aime_u2
-//                    """);
-//                System.out.println("constraint fk_aime_u2 dropped");
-//            } catch (SQLException ex) {
-//                // nothing to do : maybe the constraint was not created
-//            }
-            // je peux maintenant supprimer les tables
-//            try {
-//                st.executeUpdate(
-//                        """
-//                    drop table aime
-//                    """);
-//                System.out.println("dable aime dropped");
-//            } catch (SQLException ex) {
-//                // nothing to do : maybe the table was not created
-//            }
+            try {
+                st.executeUpdate(
+                """
+                alter table objet2
+                drop constraint fk_objet2_proposepar 
+  //            foreign key (proposepar) references utilisateur2(id) à mettre ?
+                """);
+                } catch (SQLException ex) {}
+                
+        
+               try {
+                st.executeUpdate(
+                 """
+                alter table objet2
+                drop constraint fk_objet2_cat
+                foreign key (sur) references objet2(id)
+                """);
+                } catch (SQLException ex) {}
+                
+                try {
+                st.executeUpdate(
+                 """
+                alter table encheres2
+                drop constraint fk_encheres2_sur 
+                foreign key (sur) references objet2(id)
+                """);
+                } catch (SQLException ex) {}
+            
+                   try {
+                st.executeUpdate(
+                 """
+                alter table encheres2
+                drop constraint fk_encheres2_de
+                foreign key (de) references utilisateur2(id)
+                """);
+                } catch (SQLException ex) {}
+            
             try {
                 st.executeUpdate(
                         """
@@ -244,27 +244,6 @@ public class GestionBdD {
             } catch (SQLException ex) {// nothing to do : maybe the table was not created
             }
             //*****************************************************************************
-        }
-    }
-
-    /*
-    public static void ChoixUtilisateur() throws SQLException {
-    }
-    */
-    
-    
-    public static void ChoixCategorie() throws SQLException {
-    }
-    
-    public static void main(String[] args) {
-        try(Connection con = defautConnect()) {
-            System.out.println("debug");
-            demandeNouvelUtilisateur();
-            // creerUtilisateur(con);
-            deleteSchema(con);
-            creeSchema(con);
-        } catch (Exception ex) {
-            throw new Error(ex);
         }
     }
 
@@ -319,7 +298,7 @@ public class GestionBdD {
     
     
     public static void creerUtilisateur(Connection con,String monNom,String monPrenom,String monCodePostal, String monEmail, String monMDP) throws SQLException {
-        try (PreparedStatement pst = con.prepareStatement("insert into utilisateur (nom, prenom, email, codepostal, pass) "
+        try (PreparedStatement pst = con.prepareStatement("insert into utilisateur2 (nom, prenom, email, codepostal, pass) "
                 + " values (?,?,?,?,?) ")) {
             pst.setString(1, monNom);
             pst.setString(2, monPrenom);
@@ -331,17 +310,15 @@ public class GestionBdD {
     }
     
     
-    public static void demandeNouvelUtilisateur(){
+    public static void demandeNouvelUtilisateur(Connection con) throws SQLException{
+        
+        //cette fonction récolte les variables nécéssaires à la création d'un nouvel utilisateur, et puis
+        //les créer avec creerUtilisateur(), appelé dans le main
         
         Scanner console = new Scanner(System.in); 
-        /*String monPrenom ;
-        String monNom ;
-        String monCodePostal ;
-        String monEmail ;
-        String MonMDP ;
-        */
+        
         System.out.println("Rentrez votre prénom : ");
-        String monPrenom = console.nextLine();
+        String monPrenom = Lire.S();
         System.out.println("Rentrez votre nom de famille : ");
         String monNom = console.nextLine();
         System.out.println("Rentrez votre code postal : ");
@@ -349,8 +326,56 @@ public class GestionBdD {
         System.out.println("Rentrez votre email : ");
         String monEmail = console.nextLine();
         System.out.println("Rentrez votre mdp : ");
-        String MonMDP = console.nextLine();
+        String monMDP = console.nextLine();
+        creerUtilisateur(con, monNom, monPrenom, monCodePostal, monEmail, monMDP);
+
     }
     
-}
+    public static void demandeNouvelObjet(Connection con) throws SQLException{
+        
+        //cette fonction récolte les variables nécéssaires à la création d'un nouvel objet dans la bdd, et puis
+        //les créer avec creerObjet(), appelé dans le main
+        
+        Scanner console = new Scanner(System.in); 
+        
+        System.out.println("Rentrez le titre : ");
+        String monTitre = Lire.S();
+        
+        System.out.println("Rentrez la description : ");
+        String maDescription = console.nextLine();
+        
+        //monDebut =                                //récolter les valeurs de temps
+        
+        System.out.println("Rentrez votre prix inital : ");
+        String monPrixbase = console.nextLine();
+        
+        //int MonProposepar =                             //récolter l'id utilisteur ? 
+        
+        System.out.println("Choissisez la catégorie");       //créer une boucle pour forcer le xhoix d'une catégorie
+        System.out.println("1) Vetements ");
+        System.out.println("2) Livres");
+        int maCat = ConsoleFdB.entreeEntier("Votre choix : ");
+   
+        //maFin =                                   //récolter monDébut + X temps à définir
+        
+        //creerObjet (con, monTitre, maDescription, monDebut, monPrixbase, monProposepar, maCat, maFin);
 
+    }
+    /*
+    
+    public static void creerObjet (Connection con,String monTitre,String maDescription,timestamp monDebut, int monPrixbase, int monProposepar, int maCat, timestamp maFin) throws SQLException {
+        try (PreparedStatement pst = con.prepareStatement("insert into objet2 (titre, description, debut, prixbase, proposepar, cat, fin)"    
+                + " values (?,?,?,?,?,?,?) ")) {
+            pst.setString(1, monTitre);
+            pst.setString(2, maDescription);
+            pst.setString(3, monDebut);    //timestamp
+            pst.setInt(4, monPrixbase);   
+            pst.setInt(5, monProposepar);
+            pst.setInt(6, maCat);    
+            pst.setString(7, maFin);    //timestamp
+            pst.executeUpdate();
+        }
+    }
+    
+    */
+}
