@@ -7,8 +7,12 @@ package fr.insa.theo.encheresge2t2;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Scanner;   //préciser qu'on a importé
 
 // @author tzilliox01
@@ -36,10 +40,14 @@ public class GestionBdD {
         public static void main(String[] args) {
         try(Connection con = defautConnect()) {
             System.out.println("debug");
-            //demandeNouvelUtilisateur(con);
-            //demandeNouvelObjet(con);
+ 
             deleteSchema(con);
-            //creeSchema(con);
+            creeSchema(con);
+            creeBDB (con);
+           //demanderCategorie(con);
+           //demandeNouvelUtilisateur(con);
+           //demandeNouvelObjet(con);
+            
         } catch (Exception ex) {
             throw new Error(ex);
         }
@@ -81,7 +89,7 @@ public class GestionBdD {
                             generated always as identity,
                             nom varchar(50) not null,
                             prenom varchar(30) not null,
-                            mail varchar(100) not null unique,
+                            email varchar(100) not null unique,
                             pass varchar(30) not null,
                             codepostal varchar(30) not null
                             )
@@ -177,9 +185,10 @@ public class GestionBdD {
                 """
                 alter table objet2
                 drop constraint fk_objet2_proposepar 
-  //            foreign key (proposepar) references utilisateur2(id) à mettre ?
-                """);
-                } catch (SQLException ex) {}
+                 """);
+                } catch (SQLException ex) {
+                System.out.println("pas de fk_objet2_proposepar :"+ex.getLocalizedMessage());
+                }
                 
         
                try {
@@ -187,7 +196,6 @@ public class GestionBdD {
                  """
                 alter table objet2
                 drop constraint fk_objet2_cat
-                foreign key (sur) references objet2(id)
                 """);
                 } catch (SQLException ex) {}
                 
@@ -196,7 +204,6 @@ public class GestionBdD {
                  """
                 alter table encheres2
                 drop constraint fk_encheres2_sur 
-                foreign key (sur) references objet2(id)
                 """);
                 } catch (SQLException ex) {}
             
@@ -205,8 +212,7 @@ public class GestionBdD {
                  """
                 alter table encheres2
                 drop constraint fk_encheres2_de
-                foreign key (de) references utilisateur2(id)
-                """);
+               """);
                 } catch (SQLException ex) {}
             
             try {
@@ -216,7 +222,8 @@ public class GestionBdD {
                     """);
                 System.out.println("table utilisateur2 dropped");
             }
-            catch (SQLException ex) {}
+            catch (SQLException ex) {
+                System.out.println("pas de drop table utilisateur2 : " +ex.getLocalizedMessage());}
             //*************************************************************************
             try {
                 st.executeUpdate(
@@ -233,7 +240,8 @@ public class GestionBdD {
                     drop table objet2
                     """);
                 System.out.println("table objet2 dropped");
-            } catch (SQLException ex) {}
+            } catch (SQLException ex) {
+            }
             //*************************************************************************
             try {
                 st.executeUpdate(
@@ -297,23 +305,37 @@ public class GestionBdD {
     */
     
     
-    public static void creerUtilisateur(Connection con,String monNom,String monPrenom,String monCodePostal, String monEmail, String monMDP) throws SQLException {
-        try (PreparedStatement pst = con.prepareStatement("insert into utilisateur2 (nom, prenom, email, codepostal, pass) "
+    public static void creeUtilisateur(Connection con,String monNom,String monPrenom,String monEmail,String monMDP,String monCodePostal) throws SQLException {
+        try (PreparedStatement pst = con.prepareStatement("insert into utilisateur2 (nom, prenom, email, pass, codepostal) "
                 + " values (?,?,?,?,?) ")) {
             pst.setString(1, monNom);
             pst.setString(2, monPrenom);
-            pst.setString(3, monCodePostal);
-            pst.setString(4, monEmail);
-            pst.setString(5, monMDP);
+            pst.setString(3, monEmail);
+            pst.setString(4, monMDP);
+            pst.setString(5, monCodePostal);
             pst.executeUpdate();
+                   // je peux alors récupérer les clés créées comme un result set :
+           /*    try ( ResultSet rid = pst.getGeneratedKeys()) {
+                    // et comme ici je suis sur qu'il y a une et une seule clé, je
+                    // fait un simple next 
+                    rid.next();
+                    // puis je récupère la valeur de la clé créé qui est dans la
+                    // première colonne du ResultSet
+                    int id = rid.getInt(1);
+                    return id;
+                   */
+                   
+                }
+                   
+ 
         }
-    }
+    
     
     
     public static void demandeNouvelUtilisateur(Connection con) throws SQLException{
         
         //cette fonction récolte les variables nécéssaires à la création d'un nouvel utilisateur, et puis
-        //les créer avec creerUtilisateur(), appelé dans le main
+        //les créer avec creeUtilisateur(), appelé dans le main
         
         Scanner console = new Scanner(System.in); 
         
@@ -327,14 +349,14 @@ public class GestionBdD {
         String monEmail = console.nextLine();
         System.out.println("Rentrez votre mdp : ");
         String monMDP = console.nextLine();
-        creerUtilisateur(con, monNom, monPrenom, monCodePostal, monEmail, monMDP);
+        creeUtilisateur(con, monNom, monPrenom, monEmail, monMDP, monCodePostal);
 
     }
-    
+
     public static void demandeNouvelObjet(Connection con) throws SQLException{
         
         //cette fonction récolte les variables nécéssaires à la création d'un nouvel objet dans la bdd, et puis
-        //les créer avec creerObjet(), appelé dans le main
+        //les créer avec creeObjet(), appelé dans le main
         
         Scanner console = new Scanner(System.in); 
         
@@ -344,38 +366,98 @@ public class GestionBdD {
         System.out.println("Rentrez la description : ");
         String maDescription = console.nextLine();
         
-        //monDebut =                                //récolter les valeurs de temps
-        
+        Timestamp monDebut = new Timestamp(System.currentTimeMillis());
+        LocalDateTime cur = LocalDateTime.now();
+        LocalDateTime plusUnMois = cur.plusMonths(1);
+        Timestamp maFin = Timestamp.valueOf(plusUnMois);
+                
         System.out.println("Rentrez votre prix inital : ");
-        String monPrixbase = console.nextLine();
+        int monPrixbase = Lire.i();
         
-        //int MonProposepar =                             //récolter l'id utilisteur ? 
+        System.out.println("Quel est votre id ?");
         
-        System.out.println("Choissisez la catégorie");       //créer une boucle pour forcer le xhoix d'une catégorie
+        int monProposepar = Lire.i();                     //récolter l'id utilisteur ? (recolter email/nom pour en chercher l'id)
+        
+        System.out.println("Choissisez la catégorie");       //créer une boucle pour forcer le choix d'une catégorie
         System.out.println("1) Vetements ");
         System.out.println("2) Livres");
-        int maCat = ConsoleFdB.entreeEntier("Votre choix : ");
-   
-        //maFin =                                   //récolter monDébut + X temps à définir
         
-        //creerObjet (con, monTitre, maDescription, monDebut, monPrixbase, monProposepar, maCat, maFin);
-
-    }
-    /*
+        int maCat = ConsoleFdB.entreeEntier("Votre choix : ");  
+        creeObjet (con, monTitre, maDescription, monDebut, monPrixbase, monProposepar , maCat, maFin);
+         }
     
-    public static void creerObjet (Connection con,String monTitre,String maDescription,timestamp monDebut, int monPrixbase, int monProposepar, int maCat, timestamp maFin) throws SQLException {
+    public static void creeObjet (Connection con,String monTitre,String maDescription,Timestamp monDebut,
+            int monPrixbase, int monProposepar, int maCat, Timestamp maFin) throws SQLException {
+        
         try (PreparedStatement pst = con.prepareStatement("insert into objet2 (titre, description, debut, prixbase, proposepar, cat, fin)"    
                 + " values (?,?,?,?,?,?,?) ")) {
             pst.setString(1, monTitre);
             pst.setString(2, maDescription);
-            pst.setString(3, monDebut);    //timestamp
+            pst.setTimestamp(3, monDebut);    //timestamp
             pst.setInt(4, monPrixbase);   
             pst.setInt(5, monProposepar);
             pst.setInt(6, maCat);    
-            pst.setString(7, maFin);    //timestamp
+            pst.setTimestamp(7, maFin);    //timestamp
             pst.executeUpdate();
-        }
-    }
+            
+                /*
+                   // je peux alors récupérer les clés créées comme un result set :
+                try ( ResultSet rid = pst.getGeneratedKeys()) {
+                    // et comme ici je suis sur qu'il y a une et une seule clé, je
+                    // fait un simple next 
+                    rid.next();
+                    // puis je récupère la valeur de la clé créé qui est dans la
+                    // première colonne du ResultSet
+                    int id = rid.getInt(1);
+                    return id;
+            
+                }
+
+                    */
+ 
+            }
+         }
+        public static void demanderCategorie(Connection con) throws SQLException{
     
-    */
+        Scanner console = new Scanner(System.in); 
+        System.out.println("Rentrez le nom de la catégorie : ");
+        String monNomCat = Lire.S();
+        creeCategorie(con, monNomCat);
+        
+        }
+    
+        
+        public static void creeCategorie (Connection con, String monNomCat)throws SQLException {
+            try (PreparedStatement pst = con.prepareStatement("insert into categorie2 (nom)" 
+                    + " values (?) "))
+                    {
+            pst.setString(1, monNomCat);
+            pst.executeUpdate();
+        
+            }
+        
+        }       
+        
+        public static void creeBDB (Connection con) throws SQLException
+        {
+            String a = "White";
+            String b = "Walter";
+            String c = "ww@gmail.com";
+            String d = "bluemeth";
+            String e = "87101";
+            String f = "Bateman";
+            String g = "Patrick";
+            String h = "americanpsycho@yahoo.com";
+            String i = "PaulAllen212";
+            String j = "10001";
+            String k = "Chad";
+            String l = "Giga";
+            String m = "chad@gmail.com";
+            String n = "0000";
+            String o = "10115";
+            
+            creeUtilisateur(con , a, b , c , d , e);
+            creeUtilisateur(con , f, g , h , i , j);
+            creeUtilisateur(con , k, l , m , n , o);
+        }
 }
