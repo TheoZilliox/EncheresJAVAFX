@@ -44,9 +44,6 @@ public class GestionBdD {
             deleteSchema(con);
             creeSchema(con);
             creeBDB (con);
-           //demanderCategorie(con);
-           //demandeNouvelUtilisateur(con);
-           //demandeNouvelObjet(con);
             
         } catch (Exception ex) {
             throw new Error(ex);
@@ -131,7 +128,7 @@ public class GestionBdD {
                                   """
                                   alter table objet2
                                   add constraint fk_objet2_cat
-                                    foreign key (cat) references encheres2(id)
+                                    foreign key (cat) references categorie2(id)
                                   """);
                                   
                           st.executeUpdate(
@@ -380,7 +377,8 @@ public class GestionBdD {
         
         System.out.println("Choissisez la catégorie");       //créer une boucle pour forcer le choix d'une catégorie
         System.out.println("1) Vetements ");
-        System.out.println("2) Livres");
+        System.out.println("2) Bricolage ");
+        System.out.println("3) Sport"); 
         
         int maCat = ConsoleFdB.entreeEntier("Votre choix : ");  
         creeObjet (con, monTitre, maDescription, monDebut, monPrixbase, monProposepar , maCat, maFin);
@@ -417,6 +415,7 @@ public class GestionBdD {
  
             }
          }
+    
         public static void demanderCategorie(Connection con) throws SQLException{
     
         Scanner console = new Scanner(System.in); 
@@ -445,19 +444,66 @@ public class GestionBdD {
             String c = "ww@gmail.com";
             String d = "bluemeth";
             String e = "87101";
+            
             String f = "Bateman";
             String g = "Patrick";
             String h = "americanpsycho@yahoo.com";
             String i = "PaulAllen212";
             String j = "10001";
+            
             String k = "Chad";
             String l = "Giga";
             String m = "chad@gmail.com";
             String n = "0000";
             String o = "10115";
             
+            String p = "Vetements";
+            String q = "Bricolage";
+            String r = "Sport";
+            
+            String s = "Blouse";
+            String t = "Utile pour cuisiner des spécialités locales";
+            Timestamp u = new Timestamp(System.currentTimeMillis());
+            LocalDateTime U  = LocalDateTime.now();
+            LocalDateTime plusUnMois = U.plusMonths(1);
+            Timestamp y = Timestamp.valueOf(plusUnMois);
+            int v = 2600;
+            int w = 1;
+            int x = 1;
+            
+            String z = "Hache";
+            String A = "Parfait pour découper votre bois en hiver";
+            LocalDateTime C  = LocalDateTime.now();
+            LocalDateTime D = C.plusMonths(1);
+            LocalDateTime E = C.plusMonths(2);
+            Timestamp F = Timestamp.valueOf(D);
+            Timestamp G = Timestamp.valueOf(E);
+            int H = 5000;
+            int I = 2;
+            int J = 2;
+            
+            String K = "Haltères";
+            String L = "Ils pèsent 10 kilos chacun";
+            LocalDateTime M  = LocalDateTime.now();
+            LocalDateTime N = M.plusMonths(2);
+            LocalDateTime O = M.plusMonths(3);
+            Timestamp P = Timestamp.valueOf(N);
+            Timestamp Q = Timestamp.valueOf(O);
+            int R = 3000;
+            int S = 3;
+            int T = 3;
+            
+
             creeUtilisateur(con , a, b , c , d , e);
             creeUtilisateur(con , f, g , h , i , j);
             creeUtilisateur(con , k, l , m , n , o);
+            creeCategorie(con, p);
+            creeCategorie(con, q);
+            creeCategorie(con, r);
+            creeObjet(con, s, t, u, v ,w, x, y);
+            creeObjet(con, z, A, F, H, I, J, G);
+            creeObjet(con, K, L, P, R, S, T, Q);
+
+            
         }
 }
