@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Scanner;   //préciser qu'on a importé
 
@@ -40,10 +39,12 @@ public class GestionBdD {
         public static void main(String[] args) {
         try(Connection con = defautConnect()) {
             System.out.println("debug");
- 
             deleteSchema(con);
             creeSchema(con);
             creeBDB (con);
+            demandeNouvelUtilisateur(con);
+            demandeNouvelObjet(con);
+            afficheUtilisateur(con);
             
         } catch (Exception ex) {
             throw new Error(ex);
@@ -379,7 +380,14 @@ public class GestionBdD {
         System.out.println("1) Vetements ");
         System.out.println("2) Bricolage ");
         System.out.println("3) Sport"); 
-        
+        System.out.println("4) Cosmétique"); 
+        System.out.println("5) Culture "); 
+        System.out.println("6) Technologie"); 
+        System.out.println("7) Jardin"); 
+        System.out.println("8) Jouets"); 
+        System.out.println("9) Ecole"); 
+        System.out.println("10) Accesoires pour animaux"); 
+
         int maCat = ConsoleFdB.entreeEntier("Votre choix : ");  
         creeObjet (con, monTitre, maDescription, monDebut, monPrixbase, monProposepar , maCat, maFin);
          }
@@ -418,7 +426,7 @@ public class GestionBdD {
     
         public static void demanderCategorie(Connection con) throws SQLException{
     
-        Scanner console = new Scanner(System.in); 
+        //Scanner console = new Scanner(System.in); 
         System.out.println("Rentrez le nom de la catégorie : ");
         String monNomCat = Lire.S();
         creeCategorie(con, monNomCat);
@@ -493,17 +501,67 @@ public class GestionBdD {
             int S = 3;
             int T = 3;
             
-
+            
+            String uu = "Cosmétique";
+            String V = "Culture";
+            String W = "Technologie";
+            String X = "Jardin";
+            String Y = "Jouets";
+            String Z = "Ecole";
+            String ZA = "Accesoires pour animaux";
+            
             creeUtilisateur(con , a, b , c , d , e);
             creeUtilisateur(con , f, g , h , i , j);
             creeUtilisateur(con , k, l , m , n , o);
             creeCategorie(con, p);
             creeCategorie(con, q);
             creeCategorie(con, r);
+            creeCategorie(con, uu);
+            creeCategorie(con, V);
+            creeCategorie(con, W);
+            creeCategorie(con, X);
+            creeCategorie(con, Y);
+            creeCategorie(con, Z);
+            creeCategorie(con, ZA);
             creeObjet(con, s, t, u, v ,w, x, y);
             creeObjet(con, z, A, F, H, I, J, G);
             creeObjet(con, K, L, P, R, S, T, Q);
 
             
         }
-}
+        
+        public static void afficheUtilisateur(Connection con) throws SQLException {
+             try ( Statement st = con.createStatement()) {
+            // pour effectuer une recherche, il faut utiliser un "executeQuery"
+            // un executeQuery retourne un ResultSet qui contient le résultat
+              try ( ResultSet CHAINE = st.executeQuery(
+                    """
+                        select id,nom,prenom,email,pass,codepostal
+                            from utilisateur2
+                    """
+                    )) 
+              {
+                // un ResultSet se manipule un peu comme un fichier :
+                // - il faut le fermer quand on ne l'utilise plus
+                //   d'où l'utilisation du try(...) ci-dessus
+                System.out.println("Utilisateurs :");
+                System.out.println("               ");
+                // ici, on veut lister toutes les lignes, d'où le while
+                while (CHAINE.next()) {
+                    int id = CHAINE.getInt("id");
+                    String nom = CHAINE.getString("nom");
+                    String prenom = CHAINE.getString("prenom");
+                    String email = CHAINE.getString("email");
+                    String pass = CHAINE.getString("pass");
+                    String codepostal = CHAINE.getString("codepostal");
+                    String Ligne = id + " - " + nom + " - " + prenom + " - " + email + " - " + pass + " - " + codepostal ;
+                    System.out.println(Ligne);
+                    }
+                }
+              }
+            }
+        
+        
+        
+        
+      }
