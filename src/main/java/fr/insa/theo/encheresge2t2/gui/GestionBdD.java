@@ -1,8 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package fr.insa.theo.encheresge2t2;
+package fr.insa.theo.encheresge2t2.gui;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,9 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Scanner;   //préciser qu'on a importé
+import java.util.Optional;
+import java.util.Scanner;
 
-// @author tzilliox01
 public class GestionBdD {
 
     public static Connection connectGeneralPostGres(String host,
@@ -35,12 +31,11 @@ public class GestionBdD {
         return connectGeneralPostGres("localhost", 5432, "postgres", "postgres", "passe");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) {     //on enleve les commentaires selon ce qu'on veut réaliser
         try ( Connection con = defautConnect()) {
             deleteSchema(con);
             creeSchema(con);
-            creeBDB(con);
-
+            creeBDD(con);
             //demandeNouvelUtilisateur(con);
             //afficheUtilisateur(con);
             //demandeNouvelObjet(con);
@@ -57,10 +52,7 @@ public class GestionBdD {
         // je vais donc gérer explicitement une transactionSS
         con.setAutoCommit(false);
         try ( Statement st = con.createStatement()) {
-            // creation des tables
 
-            // ResultSet resultSet = statement.executeQuery( sql: "create table objet2"); 
-            //while (resultSet.next())
             st.executeUpdate(
                     """
                      
@@ -247,7 +239,7 @@ public class GestionBdD {
     public static void demandeNouvelUtilisateur(Connection con) throws SQLException {
 
         //cette fonction récolte les variables nécéssaires à la création d'un nouvel utilisateur, et puis
-        //les créer avec creeUtilisateur(), appelé dans le main
+        //les créer avec creeUtilisateur(), appelé dans le main. Cette création est analogue pour les 4 autres tables, à quelques détails près
         Scanner console = new Scanner(System.in);
         System.out.println("------------------------");
         System.out.println("Création d'un utilisateur");
@@ -302,34 +294,18 @@ public class GestionBdD {
                 + " values (?,?,?,?,?,?,?) ")) {
             pst.setString(1, monTitre);
             pst.setString(2, maDescription);
-            pst.setTimestamp(3, monDebut);    //timestamp
+            pst.setTimestamp(3, monDebut);
             pst.setInt(4, monPrixbase);
             pst.setInt(5, monProposepar);
             pst.setInt(6, maCat);
-            pst.setTimestamp(7, maFin);    //timestamp
+            pst.setTimestamp(7, maFin);
             pst.executeUpdate();
 
-            /*
-                   // je peux alors récupérer les clés créées comme un result set :
-                try ( ResultSet rid = pst.getGeneratedKeys()) {
-                    // et comme ici je suis sur qu'il y a une et une seule clé, je
-                    // fait un simple next 
-                    rid.next();
-                    // puis je récupère la valeur de la clé créé qui est dans la
-                    // première colonne du ResultSet
-                    int id = rid.getInt(1);
-                    return id;
-            
-                }
-
-             */
         }
     }
 
     public static void demandeNouvelObjet(Connection con) throws SQLException {
 
-        //cette fonction récolte les variables nécéssaires à la création d'un nouvel objet dans la bdd, et puis
-        //les créer avec creeObjet(), appelé dans le main
         Scanner console = new Scanner(System.in);
         System.out.println("--------------------------");
         System.out.println("Création d'un objet");
@@ -349,9 +325,9 @@ public class GestionBdD {
 
         System.out.println("Quel est votre id ?");
 
-        int monProposepar = Lire.i();                     //récolter l'id utilisteur ? (recolter email/nom pour en chercher l'id)
+        int monProposepar = Lire.i();                     //en mode admin, on se permet de dircetement demande l'id
 
-        System.out.println("Choissisez la catégorie");       //créer une boucle pour forcer le choix d'une catégorie
+        System.out.println("Choissisez la catégorie");
         System.out.println("1) Vetements ");
         System.out.println("2) Bricolage ");
         System.out.println("3) Sport");
@@ -361,7 +337,7 @@ public class GestionBdD {
         System.out.println("7) Jardin");
         System.out.println("8) Jouets");
         System.out.println("9) Ecole");
-        System.out.println("10) Accesoires pour animaux");
+        System.out.println("10) Accessoires pour animaux");
 
         int maCat = ConsoleFdB.entreeEntier("Votre choix : ");
         creeObjet(con, monTitre, maDescription, monDebut, monPrixbase, monProposepar, maCat, maFin);
@@ -369,8 +345,7 @@ public class GestionBdD {
 
     public static void AfficheObjet(Connection con) throws SQLException {
         try ( Statement st = con.createStatement()) {
-            // pour effectuer une recherche, il faut utiliser un "executeQuery"
-            // un executeQuery retourne un ResultSet qui contient le résultat
+
             try ( ResultSet CHAINE = st.executeQuery(
                     """
                         select id,titre,description,prixbase, fin
@@ -385,7 +360,6 @@ public class GestionBdD {
                     String TITRE = CHAINE.getString("titre");
                     String DESCRIPTION = CHAINE.getString("description");
                     int PB = CHAINE.getInt("prixbase");
-                    //Timestamp FIN = CHAINE.getTimestamp("fin");
                     String Ligne = ID + " - " + TITRE + " - " + DESCRIPTION + " - " + PB;
                     System.out.println(Ligne);
                 }
@@ -427,8 +401,8 @@ public class GestionBdD {
 
         }
     }
-    
-        public static void DemandeEncheres(Connection con) throws SQLException {
+
+    public static void DemandeEncheres(Connection con) throws SQLException {
 
         System.out.println("---------------------------");
         System.out.println("Création d'une enchère");
@@ -467,7 +441,7 @@ public class GestionBdD {
         }
     }
 
-    public static void creeBDB(Connection con) throws SQLException {
+    public static void creeBDD(Connection con) throws SQLException {  //création d'une BdD pouyr travailler aisément
         String a = "White";
         String b = "Walter";
         String c = "ww@gmail.com";
@@ -496,7 +470,7 @@ public class GestionBdD {
         LocalDateTime U = LocalDateTime.now();
         LocalDateTime plusUnMois = U.plusMonths(1);
         Timestamp y = Timestamp.valueOf(plusUnMois);
-        int v = 2600;
+        int v = 26;
         int w = 1;
         int x = 1;
 
@@ -507,7 +481,7 @@ public class GestionBdD {
         LocalDateTime E = C.plusMonths(2);
         Timestamp F = Timestamp.valueOf(D);
         Timestamp G = Timestamp.valueOf(E);
-        int H = 5000;
+        int H = 50;
         int I = 2;
         int J = 2;
 
@@ -518,7 +492,7 @@ public class GestionBdD {
         LocalDateTime O = M.plusMonths(3);
         Timestamp P = Timestamp.valueOf(N);
         Timestamp Q = Timestamp.valueOf(O);
-        int R = 3000;
+        int R = 30;
         int S = 3;
         int T = 3;
 
@@ -528,7 +502,7 @@ public class GestionBdD {
         String X = "Jardin";
         String Y = "Jouets";
         String Z = "Ecole";
-        String ZA = "Accesoires pour animaux";
+        String ZA = "Accessoires pour animaux";
 
         creeUtilisateur(con, a, b, c, d, e);
         creeUtilisateur(con, f, g, h, i, j);
@@ -548,5 +522,20 @@ public class GestionBdD {
         creeObjet(con, K, L, P, R, S, T, Q);
 
     }
-    
+
+    public static Optional<Utilisateur> login(Connection con, String email, String pass) throws SQLException {
+        try ( PreparedStatement pst = con.prepareStatement(
+                "select * from utilisateur2 where utilisateur2.email = ? and pass = ?")) {
+
+            pst.setString(1, email);
+            pst.setString(2, pass);
+            ResultSet res = pst.executeQuery();
+            if (res.next()) {
+                return Optional.of(new Utilisateur(res.getInt("id"), email, pass));
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+    // La méthode de connexion aurait permis  d'éviter l'utilisation de l'email et du mdp, mais elle n'a pas pu être finalisé 
 }
